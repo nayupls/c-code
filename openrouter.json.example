@@ -1,0 +1,5 @@
+{
+  "apiKey": "sk-or-v1-your-key",
+  "baseUrl": "https://openrouter.ai/api/v1/chat/completions",
+  "model": "openai/gpt-4.1-mini"
+}
