@@ -13,6 +13,10 @@ typedef struct ChatMessage {
 typedef struct ProviderResult {
     char *content;
     char *error;
+    long long prompt_tokens;
+    long long completion_tokens;
+    long long total_tokens;
+    double cost_usd;
 } ProviderResult;
 
 ProviderResult openrouter_chat(const AgentDefinition *agent, const char *system_prompt, const ChatMessage *messages, size_t count);

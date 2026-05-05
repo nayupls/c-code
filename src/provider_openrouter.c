@@ -72,16 +72,16 @@ ProviderResult openrouter_chat(const AgentDefinition *agent, const char *system_
     sb_appendf(&auth, "Authorization: Bearer %s", api_key);
     headers = curl_slist_append(headers, "Content-Type: application/json");
     headers = curl_slist_append(headers, auth.data);
-    headers = curl_slist_append(headers, "HTTP-Referer: http://localhost/agentic-c");
-    headers = curl_slist_append(headers, "X-Title: Agentic C");
+    headers = curl_slist_append(headers, "HTTP-Referer: http://localhost/c-code");
+    headers = curl_slist_append(headers, "X-Title: C-Code");
 
     curl_easy_setopt(curl, CURLOPT_URL, base_url);
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, body);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_cb);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
-    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 120L);
-    curl_easy_setopt(curl, CURLOPT_USERAGENT, "agentic-c/0.1");
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 900L);
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, "c-code/0.1");
 
     CURLcode code = curl_easy_perform(curl);
     long status = 0;
@@ -98,6 +98,11 @@ ProviderResult openrouter_chat(const AgentDefinition *agent, const char *system_
         free(message);
     } else {
         result.content = json_extract_string_for_key(response.data, "content");
+        result.prompt_tokens = json_extract_int_for_key(response.data, "prompt_tokens", 0);
+        result.completion_tokens = json_extract_int_for_key(response.data, "completion_tokens", 0);
+        result.total_tokens = json_extract_int_for_key(response.data, "total_tokens", result.prompt_tokens + result.completion_tokens);
+        result.cost_usd = json_extract_double_for_key(response.data, "cost", 0.0);
+        if (result.cost_usd == 0.0) result.cost_usd = json_extract_double_for_key(response.data, "total_cost", 0.0);
         if (!result.content) result.error = str_dup("Could not parse assistant content from provider response");
     }
 

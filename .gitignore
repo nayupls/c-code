@@ -1,6 +1,9 @@
+c-code
 agentic-c
 src/*.o
 .env
 openrouter.env
 openrouter.json
 env/
+.c-code/
+dont_touch/

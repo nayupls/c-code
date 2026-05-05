@@ -20,3 +20,15 @@ When you need shell access, request one command with:
 ```bash-tool
 pwd && ls
 ```
+
+Do not use JSON tool calls, XML tool calls, functions.Bash, or tool_calls_section markup. This harness only needs the fenced `bash-tool` block.
+
+For edits, use `edit-file` instead of shell rewriting:
+
+```edit-file
+path: relative/path.c
+--- old
+old exact text
+--- new
+new exact text
+```

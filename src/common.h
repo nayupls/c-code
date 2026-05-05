@@ -22,12 +22,15 @@ char *read_text_file(const char *path);
 bool write_text_file(const char *path, const char *content);
 bool file_exists(const char *path);
 bool dir_exists(const char *path);
+bool ensure_dir(const char *path);
 bool path_join(char *out, size_t out_size, const char *a, const char *b);
 char *str_dup(const char *src);
 char *str_trim_dup(const char *src);
 char *json_escape(const char *src);
 char *shell_single_quote(const char *src);
 char *json_extract_string_for_key(const char *json, const char *key);
+long long json_extract_int_for_key(const char *json, const char *key, long long fallback);
+double json_extract_double_for_key(const char *json, const char *key, double fallback);
 char *current_working_dir(void);
 
 #endif

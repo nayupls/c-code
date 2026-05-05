@@ -141,12 +141,28 @@ bool agent_load(AgentDefinition *def, const char *workspace, const char *agent_n
 char *agent_build_system_prompt(const AgentDefinition *def, const char *workspace) {
     StringBuilder sb;
     sb_init(&sb);
+    char agents_path[AGENT_PATH];
+    if (workspace && path_join(agents_path, sizeof(agents_path), workspace, "AGENTS.md") && file_exists(agents_path)) {
+        char *agents = read_text_file(agents_path);
+        if (agents && agents[0] != '\0') {
+            sb_append(&sb, "Repository instructions from AGENTS.md:\n\n");
+            sb_append(&sb, agents);
+            sb_append(&sb, "\n\n---\n\n");
+        }
+        free(agents);
+    }
     sb_append(&sb, def->system_prompt);
     sb_append(&sb, "\n\n");
     sb_appendf(&sb, "Workspace: %s\n", workspace ? workspace : ".");
-    sb_append(&sb, "You can request one bash command by writing a fenced block exactly like:\n");
+    sb_append(&sb, "Tool protocol: request at most one tool call per assistant turn.\n");
+    sb_append(&sb, "For shell access, write one fenced block exactly like this, using three backticks:\n");
     sb_append(&sb, "```bash-tool\npwd && ls\n```\n");
-    sb_append(&sb, "The harness will run the command in the workspace, append the output, and continue. ");
+    sb_append(&sb, "For file edits, prefer edit-file over shell commands. Use exact old/new replacement:\n");
+    sb_append(&sb, "```edit-file\npath: relative/path.c\n--- old\nold exact text\n--- new\nnew exact text\n```\n");
+    sb_append(&sb, "For creating or replacing a whole file, use:\n");
+    sb_append(&sb, "```edit-file\npath: relative/path.txt\n--- content\nfull file content\n```\n");
+    sb_append(&sb, "Do not emit JSON tool calls, XML tool calls, functions.Bash calls, or tool_calls_section markup. ");
+    sb_append(&sb, "The harness will run the tool in the workspace, append the output, and continue. ");
     sb_append(&sb, "Prefer small, inspectable commands before edits. Do not use interactive commands.\n");
     return sb_steal(&sb);
 }

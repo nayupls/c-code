@@ -118,6 +118,11 @@ bool dir_exists(const char *path) {
     return stat(path, &st) == 0 && S_ISDIR(st.st_mode);
 }
 
+bool ensure_dir(const char *path) {
+    if (dir_exists(path)) return true;
+    return mkdir(path, 0700) == 0 || errno == EEXIST;
+}
+
 bool path_join(char *out, size_t out_size, const char *a, const char *b) {
     if (!out || out_size == 0 || !a || !b) return false;
     size_t len = strlen(a);
@@ -257,6 +262,41 @@ char *json_extract_string_for_key(const char *json, const char *key) {
     }
     sb_free(&needle);
     return NULL;
+}
+
+static const char *json_value_after_key(const char *json, const char *key) {
+    if (!json || !key) return NULL;
+    StringBuilder needle;
+    sb_init(&needle);
+    sb_appendf(&needle, "\"%s\"", key);
+    const char *p = json;
+    while ((p = strstr(p, needle.data)) != NULL) {
+        p += needle.len;
+        while (*p && isspace((unsigned char)*p)) p++;
+        if (*p != ':') continue;
+        p++;
+        while (*p && isspace((unsigned char)*p)) p++;
+        sb_free(&needle);
+        return p;
+    }
+    sb_free(&needle);
+    return NULL;
+}
+
+long long json_extract_int_for_key(const char *json, const char *key, long long fallback) {
+    const char *p = json_value_after_key(json, key);
+    if (!p) return fallback;
+    char *end = NULL;
+    long long value = strtoll(p, &end, 10);
+    return end && end != p ? value : fallback;
+}
+
+double json_extract_double_for_key(const char *json, const char *key, double fallback) {
+    const char *p = json_value_after_key(json, key);
+    if (!p) return fallback;
+    char *end = NULL;
+    double value = strtod(p, &end);
+    return end && end != p ? value : fallback;
 }
 
 char *current_working_dir(void) {
